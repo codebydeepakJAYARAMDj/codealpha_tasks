@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Age Calculator</title>
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiQWdlIENhbGN1bGF0b3IiLCJzaG9ydF9uYW1lIjoiQWdlQ2FsYyIsInN0YXJ0X3VybCI6Ii4vaW5kZXguaHRtbCIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiNmNWY1ZjUiLCJ0aGVtZV9jb2xvciI6IiM0Q0FGNTAifQ==">
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --primary-dark: #45a049;
+            --bg-light: #f5f5f5;
+            --bg-dark: #222;
+            --text-light: #333;
+            --text-dark: #f5f5f5;
+            --card-light: white;
+            --card-dark: #333;
+            --error-color: #d32f2f;
+            --shadow-light: 0 8px 16px rgba(0, 0, 0, 0.1);
+            --shadow-dark: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.dark-mode {
+            background-color: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        .calculator-container {
+            background-color: var(--card-light);
+            border-radius: 20px;
+            box-shadow: var(--shadow-light);
+            padding: 30px;
+            width: 380px;
+            text-align: center;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease-out;
+            position: relative;
+        }
+
+        .dark-mode .calculator-container {
+            background-color: var(--card-dark);
+            box-shadow: var(--shadow-dark);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            color: inherit;
+            margin-bottom: 30px;
+            position: relative;
+            display: inline-block;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            width: 30%;
+            height: 3px;
+            background-color: var(--primary-color);
+            bottom: -10px;
+            left: 35%;
+            border-radius: 2px;
+            transform: scaleX(0);
+            animation: underlineExpand 1s forwards ease-out;
+        }
+
+        @keyframes underlineExpand {
+            to { transform: scaleX(1); }
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            color: inherit;
+            padding: 5px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+
+        .theme-toggle:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-mode .theme-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: inherit;
+            font-weight: 500;
+            transition: color 0.3s;
+            font-size: 14px;
+            opacity: 0;
+            animation: slideIn 0.5s forwards;
+            animation-delay: 0.2s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            box-sizing: border-box;
+            background-color: transparent;
+            color: inherit;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: fadeUp 0.5s forwards;
+            animation-delay: 0.3s;
+        }
+
+        /* Fix for month select visibility */
+        select {
+            background-color: var(--card-light);
+            color: var(--text-light);
+        }
+
+        .dark-mode select {
+            background-color: var(--card-dark);
+            color: var(--text-dark);
+        }
+
+        select option {
+            background-color: var(--card-light);
+            color: var(--text-light);
+        }
+
+        .dark-mode select option {
+            background-color: var(--card-dark);
+            color: var(--text-dark);
+        }
+
+        .dark-mode input, .dark-mode select {
+            border-color: #555;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-weight: bold;
+            opacity: 0;
+            animation: fadeUp 0.5s forwards;
+            animation-delay: 0.4s;
+        }
+
+        button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active::after {
+            animation: ripple 1s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            20% {
+                transform: scale(25, 25);
+                opacity: 0.5;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(40, 40);
+            }
+        }
+
+        #result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: rgba(76, 175, 80, 0.1);
+            display: none;
+            animation: expandResult 0.5s ease-out;
+            overflow: hidden;
+        }
+
+        @keyframes expandResult {
+            from { max-height: 0; opacity: 0; }
+            to { max-height: 300px; opacity: 1; }
+        }
+
+        .age-display {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }
+
+        .age-detail {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            font-size: 14px;
+            color: inherit;
+            opacity: 0.8;
+            flex-wrap: wrap;
+        }
+
+        .age-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 60px;
+        }
+
+        .age-unit span:first-child {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* New time-specific styling */
+        .time-detail {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            font-size: 12px;
+            color: inherit;
+            opacity: 0.7;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-mode .time-detail {
+            border-top: 1px dashed rgba(255, 255, 255, 0.1);
+        }
+
+        .time-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 50px;
+        }
+
+        .time-unit span:first-child {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .error {
+            color: var(--error-color);
+            margin-top: 5px;
+            font-size: 14px;
+            display: none;
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-3px, 0, 0); }
+            40%, 60% { transform: translate3d(3px, 0, 0); }
+        }
+
+        .offline-badge {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            display: none;
+            animation: slideUp 0.5s forwards;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Live clock styling */
+        .live-clock {
+            font-size: 16px;
+            opacity: 0.7;
+            margin-top: 20px;
+            animation: fadeIn 1s forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">☀️</button>
+        <h1>Age Calculator</h1>
+        
+        <div class="input-group">
+            <label for="day">Day</label>
+            <input type="number" id="day" placeholder="DD" min="1" max="31">
+            <div id="day-error" class="error">Please enter a valid day (1-31)</div>
+        </div>
+        
+        <div class="input-group">
+            <label for="month">Month</label>
+            <select id="month">
+                <option value="" disabled selected>Select Month</option>
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+            <div id="month-error" class="error">Please select a month</div>
+        </div>
+        
+        <div class="input-group">
+            <label for="year">Year</label>
+            <input type="number" id="year" placeholder="YYYY" min="1900" max="2100">
+            <div id="year-error" class="error">Please enter a valid year (1900-2100)</div>
+        </div>
+        
+        <button id="calculate-btn">Calculate Age</button>
+        
+        <div id="result">
+            <p>Your age is:</p>
+            <div class="age-display" id="age-result"></div>
+            <div class="age-detail" id="age-detail"></div>
+            <div class="time-detail" id="time-detail"></div>
+            <div class="live-clock" id="live-clock"></div>
+        </div>
+    </div>
+
+    <div class="offline-badge" id="offline-badge">
+        App is working offline
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dayInput = document.getElementById('day');
+            const monthSelect = document.getElementById('month');
+            const yearInput = document.getElementById('year');
+            const calculateBtn = document.getElementById('calculate-btn');
+            const resultDiv = document.getElementById('result');
+            const ageResult = document.getElementById('age-result');
+            const ageDetail = document.getElementById('age-detail');
+            const timeDetail = document.getElementById('time-detail');
+            const liveClock = document.getElementById('live-clock');
+            const themeToggle = document.getElementById('theme-toggle');
+            const offlineBadge = document.getElementById('offline-badge');
+            
+            const dayError = document.getElementById('day-error');
+            const monthError = document.getElementById('month-error');
+            const yearError = document.getElementById('year-error');
+            
+            let birthTimestamp = null;
+            let liveUpdateInterval = null;
+            
+            // Theme toggle functionality
+            themeToggle.addEventListener('click', toggleTheme);
+            
+            // Check for saved theme preference
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+                themeToggle.textContent = '🌙';
+            }
+            
+            function toggleTheme() {
+                document.body.classList.toggle('dark-mode');
+                const isDarkMode = document.body.classList.contains('dark-mode');
+                localStorage.setItem('darkMode', isDarkMode.toString());
+                themeToggle.textContent = isDarkMode ? '🌙' : '☀️';
+                
+                // Add ripple effect to theme toggle
+                themeToggle.classList.add('ripple');
+                setTimeout(() => {
+                    themeToggle.classList.remove('ripple');
+                }, 700);
+            }
+            
+            calculateBtn.addEventListener('click', calculateAge);
+            
+            // Add enter key support
+            dayInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') calculateAge();
+            });
+            
+            yearInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') calculateAge();
+            });
+            
+            function calculateAge() {
+                // Add button press animation
+                calculateBtn.classList.add('pressed');
+                setTimeout(() => {
+                    calculateBtn.classList.remove('pressed');
+                }, 200);
+                
+                // Reset error messages
+                dayError.style.display = 'none';
+                monthError.style.display = 'none';
+                yearError.style.display = 'none';
+                
+                // Validate inputs
+                let isValid = true;
+                
+                const day = parseInt(dayInput.value);
+                const month = parseInt(monthSelect.value);
+                const year = parseInt(yearInput.value);
+                
+                if (isNaN(day) || day < 1 || day > 31) {
+                    dayError.style.display = 'block';
+                    isValid = false;
+                }
+                
+                if (isNaN(month) || month < 1 || month > 12) {
+                    monthError.style.display = 'block';
+                    isValid = false;
+                }
+                
+                if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
+                    yearError.style.display = 'block';
+                    isValid = false;
+                }
+                
+                // Check for valid date (e.g., February 30 doesn't exist)
+                if (isValid) {
+                    const inputDate = new Date(year, month - 1, day);
+                    if (inputDate.getDate() !== day || 
+                        inputDate.getMonth() !== month - 1 || 
+                        inputDate.getFullYear() !== year) {
+                        dayError.style.display = 'block';
+                        dayError.textContent = 'Please enter a valid date';
+                        isValid = false;
+                    }
+                }
+                
+                if (!isValid) {
+                    resultDiv.style.display = 'none';
+                    
+                    // Clear any existing interval
+                    if (liveUpdateInterval) {
+                        clearInterval(liveUpdateInterval);
+                    }
+                    return;
+                }
+                
+                // Calculate age
+                const birthDate = new Date(year, month - 1, day);
+                birthTimestamp = birthDate.getTime();
+                const today = new Date();
+                
+                // Clear any existing interval before starting a new one
+                if (liveUpdateInterval) {
+                    clearInterval(liveUpdateInterval);
+                }
+                
+                // Calculate and display the initial age
+                updateAgeDisplay();
+                
+                // Start live updates
+                liveUpdateInterval = setInterval(updateAgeDisplay, 1000);
+                
+                // Display result with animation
+                resultDiv.style.display = 'none';
+                setTimeout(() => {
+                    resultDiv.style.display = 'block';
+                }, 200);
+            }
+            
+            function updateAgeDisplay() {
+                if (!birthTimestamp) return;
+                
+                const birthDate = new Date(birthTimestamp);
+                const now = new Date();
+                
+                let ageYears = now.getFullYear() - birthDate.getFullYear();
+                let ageMonths = now.getMonth() - birthDate.getMonth();
+                
+                if (ageMonths < 0 || (ageMonths === 0 && now.getDate() < birthDate.getDate())) {
+                    ageYears--;
+                    ageMonths += 12;
+                }
+                
+                // Calculate days
+                let tempDate = new Date(now);
+                tempDate.setDate(0); // Last day of previous month
+                const daysInMonth = tempDate.getDate();
+                
+                let ageDays = now.getDate() - birthDate.getDate();
+                if (ageDays < 0) {
+                    ageMonths--;
+                    ageDays += daysInMonth;
+                }
+                
+                if (ageMonths < 0) {
+                    ageYears--;
+                    ageMonths += 12;
+                }
+                
+                // Calculate hours, minutes, and seconds
+                const diffMs = now - birthDate;
+                const diffSecs = Math.floor(diffMs / 1000) % 60;
+                const diffMins = Math.floor(diffMs / (1000 * 60)) % 60;
+                const diffHours = Math.floor(diffMs / (1000 * 60 * 60)) % 24;
+                
+                // Calculate total values for alternative display
+                const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                const totalHours = Math.floor(diffMs / (1000 * 60 * 60));
+                const totalMinutes = Math.floor(diffMs / (1000 * 60));
+                const totalSeconds = Math.floor(diffMs / 1000);
+                
+                // Update display
+                ageResult.textContent = `${ageYears} years`;
+                
+                // Update detailed age display
+                ageDetail.innerHTML = `
+                    <div class="age-unit">
+                        <span>${ageYears}</span>
+                        <span>Years</span>
+                    </div>
+                    <div class="age-unit">
+                        <span>${ageMonths}</span>
+                        <span>Months</span>
+                    </div>
+                    <div class="age-unit">
+                        <span>${ageDays}</span>
+                        <span>Days</span>
+                    </div>
+                `;
+                
+                // Update time detail with hours, minutes, and seconds
+                timeDetail.innerHTML = `
+                    <div class="time-unit">
+                        <span>${diffHours}</span>
+                        <span>Hours</span>
+                    </div>
+                    <div class="time-unit">
+                        <span>${diffMins}</span>
+                        <span>Minutes</span>
+                    </div>
+                    <div class="time-unit">
+                        <span>${diffSecs}</span>
+                        <span>Seconds</span>
+                    </div>
+                `;
+                
+                // Update live clock
+                const options = { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                };
+                liveClock.textContent = `Current time: ${now.toLocaleDateString(undefined, options)}`;
+            }
+            
+            // Register service worker for offline functionality
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('./sw.js').then(registration => {
+                        console.log('ServiceWorker registration successful');
+                    }).catch(error => {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+                    
+                    // Create service worker content dynamically since we can't create a separate file
+                    const swContent = `
+                        const CACHE_NAME = 'age-calculator-v1';
+                        const urlsToCache = [
+                            './',
+                            './index.html',
+                            './manifest.json'
+                        ];
+
+                        self.addEventListener('install', event => {
+                            event.waitUntil(
+                                caches.open(CACHE_NAME)
+                                    .then(cache => {
+                                        return cache.addAll(urlsToCache);
+                                    })
+                            );
+                        });
+
+                        self.addEventListener('fetch', event => {
+                            event.respondWith(
+                                caches.match(event.request)
+                                    .then(response => {
+                                        if (response) {
+                                            return response;
+                                        }
+                                        return fetch(event.request);
+                                    })
+                            );
+                        });
+                    `;
+                    
+                    // Create a blob from the service worker content
+                    const blob = new Blob([swContent], {type: 'text/javascript'});
+                    const swURL = URL.createObjectURL(blob);
+                    
+                    // Register the service worker from the blob
+                    navigator.serviceWorker.register(swURL).then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    }).catch(error => {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+                });
+                
+                // Check for offline status
+                window.addEventListener('online', updateOnlineStatus);
+                window.addEventListener('offline', updateOnlineStatus);
+                
+                function updateOnlineStatus() {
+                    if (navigator.onLine) {
+                        offlineBadge.style.display = 'none';
+                    } else {
+                        offlineBadge.style.display = 'block';
+                    }
+                }
+                
+                // Initial check
+                updateOnlineStatus();
+            }
+        });
+    </script>
+</body>
+</html>
